@@ -15,11 +15,12 @@ class TestSimpleLogic(unittest.TestCase):
                 self.and_gate = self.add_circuit(AndGate(self.wire_a, self.wire_b, self.wire_c))
 
         circuit = SomeCircuit()
+        circuit.reset()
         output = []
         for i in range(20):
-            circuit.step()
             output.append(circuit.wire_c.value)
-        print(output)
+            circuit.step()
+        self.assertListEqual(output, [0, 0, 1, 1] * 5)
 
 
 if __name__ == '__main__':

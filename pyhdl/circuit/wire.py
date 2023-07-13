@@ -1,6 +1,7 @@
 """
 模拟引线状态
 """
+from pyhdl.bitarray import BitArray
 
 
 class Wire:
@@ -8,13 +9,21 @@ class Wire:
     模拟引线状态
     """
 
-    def __init__(self, value=0):
-        self._value = value
+    def __init__(self, n_bits: int = 1):
+        self._value = BitArray(n_bits=n_bits)
         self.change_event: list[callable] = []
         """
         当导线的值发生变化的时候触发此函数，由于always块只有or操作，所以
         使用变更函数即可
         """
+
+    def on_change(self):
+        for event in self.change_event:
+            event()
+
+    @property
+    def n_bits(self):
+        return self._value.n_bits
 
     @property
     def value(self):
@@ -23,17 +32,13 @@ class Wire:
 
         :return:
         """
-        return self._value
+        return self._value.value
 
     @value.setter
     def value(self, value):
-        if value < self._value:
-            for event in self.change_event:
-                event()
-        if self._value < value:
-            for event in self.change_event:
-                event()
-        self._value = value
+        if value != self.value:
+            self._value.value = value
+            self.on_change()
 
     def add_change_event(self, event):
         """

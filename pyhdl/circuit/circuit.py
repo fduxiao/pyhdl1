@@ -62,3 +62,10 @@ class Circuit(AbstractCircuit):
         # 按顺序计算子电路
         for circuit in self.sub_circuits:
             circuit.step()
+
+    def reset(self):
+        """
+        默认将所有字电路进行重置
+        """
+        for circuit in self.sub_circuits:
+            circuit.reset()
