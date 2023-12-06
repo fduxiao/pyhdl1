@@ -21,6 +21,9 @@ class Expr:
     def __getitem__(self, item):
         return Item(self, item)
 
+    def eq(self, other):
+        return Eq(self, other)
+
 
 @dataclass
 class Var(Expr):
@@ -49,3 +52,9 @@ class And(Expr):
 class Item(Expr):
     expr: Expr
     item: int | slice
+
+
+@dataclass
+class Eq(Expr):
+    e1: Expr
+    e2: Expr

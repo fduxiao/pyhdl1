@@ -47,7 +47,7 @@ class Xtal(AbstractCircuit):
         self.step_counter = 0
 
     def step(self):
-        if self.step_counter <= self.duration:
+        if self.step_counter < self.duration:
             self.output.value = 1
         else:
             self.output.value = 0

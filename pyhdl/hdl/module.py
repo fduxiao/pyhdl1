@@ -3,13 +3,8 @@
 每个module都是callable的，在触发__call__行为的时候生成一个circuit
 得到真实电路，然后进行仿真
 """
-from dataclasses import dataclass
-from enum import Enum, auto
-
-
-class WireType(Enum):
-    Input = auto()
-    Output = auto()
+from dataclasses import dataclass, field
+from .statement import Always, BeginBlock
 
 
 @dataclass
@@ -17,17 +12,17 @@ class Wire:
     """
     描述一个wire所需的内容
     """
-    name: str
-    n_bits: int
-    type: WireType
-    reg: False
-
+    n_bits: int = 1
+    is_input: bool = False
+    is_output: bool = False
+    reg: bool = False
+    name: str = None
 
 
 @dataclass
 class Instantiate:
     module: "Module"
-    args: list[str]
+    args: dict[str, str]
 
 
 @dataclass
@@ -35,6 +30,9 @@ class Module:
     """
     描述模块
     """
-    name: str
-    wires: list[Wire]
-    instances: dict[str, Instantiate]
+    name: str = ""
+    params: list[Wire] = field(default_factory=list)
+    wires: list[Wire] = field(default_factory=list)
+    instances: dict[str, Instantiate] = field(default_factory=dict)
+    combs: BeginBlock = field(default_factory=BeginBlock)
+    always: list[Always] = field(default_factory=list)
