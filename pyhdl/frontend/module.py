@@ -41,42 +41,73 @@ class Always(hdl.Always):
         return self
 
 
+class CombHelper:
+    def __init__(self, combs: list[hdl.Assign]):
+        self.combs = combs
+
+    def add(self, assign: hdl.Assign):
+        self.combs.append(assign)
+        return self
+
+    def __iadd__(self, other):
+        self.add(other)
+        return self
+
+
 class Module:
 
     def __init__(self):
         self.ast = hdl.Module(type(self).__name__)
-        self.block_stack = [self.ast.combs]
+        self.block_stack = [self.ast.init]
 
-    def param(self, n_bits=1, signed=False, is_input=False, is_output=False, reg=False, name=None):
+    @property
+    def combs(self):
+        return CombHelper(self.ast.combs)
+
+    @combs.setter
+    def combs(self, value: CombHelper):
+        self.ast.combs = value.combs
+
+    @staticmethod
+    def const(value):
+        return hdl.Constant(value)
+
+    def param(self, n_bits=1, signed=False, is_input=False, is_output=False, reg=False, name=None, init=None):
         if name is None:
             name = get_var_name()
         wire = Wire(n_bits, signed, is_input, is_output, reg, name)
         wire.module = self
         self.ast.params.append(wire)
-        return wire.var()
+        var = wire.var()
+        if init is not None:
+            self.add(var.assign(init))
+        return var
 
-    def input(self, n_bits=1, signed=False, name=None):
+    def input(self, n_bits=1, signed=False, name=None, reg=False, init=None):
         if name is None:
             name = get_var_name()
-        return self.param(n_bits, signed, True, False, False, name)
+        return self.param(n_bits, signed, True, False, reg, name, init)
 
-    def output(self, signed=False, n_bits=1, name=None):
+    def output(self, signed=False, n_bits=1, name=None, reg=False, init=None):
         if name is None:
             name = get_var_name()
-        return self.param(n_bits, signed, False, True, False, name)
+        return self.param(n_bits, signed, False, True, reg, name, init)
 
-    def wire(self, n_bits=1, signed=False, reg=False, name=None):
+    def wire(self, n_bits=1, signed=False, reg=False, name=None, init=None):
         if name is None:
             name = get_var_name()
         wire = Wire(n_bits, signed, reg=reg, name=name)
         wire.module = self
         self.ast.wires.append(wire)
-        return wire.var()
+        var = wire.var()
+        if init is not None:
+            self.add(var.assign(init))
+        return var
 
-    def reg(self, n_bits, signed=False, name=None):
+    def reg(self, n_bits, signed=False, name=None, init=None):
         if name is None:
             name = get_var_name()
-        return self.wire(n_bits, signed, True, name)
+        return self.wire(n_bits, signed, True, name, init)
 
     def add(self, statement: hdl.Statement):
         self.block_stack[-1].add(statement)

@@ -85,7 +85,7 @@ class Circuit:
             return BitArray(expr)
 
         if isinstance(expr, hdl.Constant):
-            return BitArray(expr.value)
+            return expr.value
 
         if isinstance(expr, hdl.Var):
             return self.wire_pool[expr.name].value

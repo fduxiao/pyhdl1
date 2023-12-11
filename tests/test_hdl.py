@@ -15,9 +15,9 @@ class TestHDL(TestCase):
                 self.clk = self.input()
                 self.rst = self.input()
                 self.ovf = self.output()
-                self.counter = self.reg(16)
+                self.counter = self.reg(16, init=1)
 
-                self.add(self.ovf.assign(self.counter.eq(self.limit)))
+                self.combs += self.ovf.assign(self.counter.eq(self.limit))
 
                 with self.always(self.clk.pos()) as clk:
                     clk.add(self.counter.assign(self.counter + 1))
@@ -25,6 +25,7 @@ class TestHDL(TestCase):
         counter = Counter(15)
 
         circuit = compile_to_circuit(counter)
+        self.assertEqual(circuit.eval(counter.counter).value, 1)
         self.assertEqual(circuit.eval(counter.ovf).value, 0)
 
         circuit.execute(counter.counter.assign(counter.limit))

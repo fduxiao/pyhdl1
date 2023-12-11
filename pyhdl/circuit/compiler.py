@@ -20,7 +20,7 @@ def compile_to_circuit(module: Union[hdl.Module, Module]) -> Circuit:
         # implement it later
         pass
 
-    for stat in module.combs.statements:
+    for stat in module.combs:
         if isinstance(stat, hdl.Assign):
             expr = stat.expr
             fv = expr.free_variables()
@@ -30,6 +30,8 @@ def compile_to_circuit(module: Union[hdl.Module, Module]) -> Circuit:
             circuit.execute(stat)
         else:
             raise NotImplementedError(stat)
+
+    circuit.execute(module.init)
 
     for always in module.always:
         edges = always.edges

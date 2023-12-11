@@ -5,6 +5,8 @@ class BitArray:
 
     @staticmethod
     def get_min_bits(value):
+        if isinstance(value, BitArray):
+            value = value.value
         if value == 0:
             min_bits = 1
         elif value == 1:
@@ -22,6 +24,9 @@ class BitArray:
             raise ValueError(n_bits)
         self.n_bits = n_bits
         self.value = value
+
+    def set_n_bits(self, n_bits):
+        self.n_bits = n_bits
 
     def set_value(self, value):
         self.value = value

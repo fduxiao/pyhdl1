@@ -4,7 +4,7 @@
 得到真实电路，然后进行仿真
 """
 from dataclasses import dataclass, field
-from .statement import BeginBlock
+from .statement import BeginBlock, Assign
 from .expr import Var
 
 
@@ -60,5 +60,6 @@ class Module:
     params: list[Wire] = field(default_factory=list)
     wires: list[Wire] = field(default_factory=list)
     instances: dict[str, Instantiate] = field(default_factory=dict)
-    combs: BeginBlock = field(default_factory=BeginBlock)
+    init: BeginBlock = field(default_factory=BeginBlock)
+    combs: list[Assign] = field(default_factory=list)
     always: list[Always] = field(default_factory=list)
