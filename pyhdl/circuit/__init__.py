@@ -3,5 +3,4 @@
 """
 from .wire import *
 from .circuit import *
-from .common import *
-from .module import *
+from .compiler import *

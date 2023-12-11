@@ -1,71 +1,102 @@
-"""
-电路的实现
-"""
+from typing import Optional
+import weakref
+
+from pyhdl import hdl, BitArray
+from .wire import BaseWire
 
 
-class AbstractCircuit:
-    """
-    电路抽象类，用于维护电路状态、变化，记录总资源等，以及允许自定义行为模拟一些特殊电路等
+class Wire(BaseWire):
+    def __init__(self, n_bit: int = 1, name=None):
+        super().__init__(n_bit)
+        self._parent: weakref.ref["Circuit"] = None
+        self.name = name
 
-    每个电路模块是一个黑盒，使用功能只能通过外部导线连接来使用。在此python类的实现里，涉及输入
-    输出的导线均通过类构造函数传入
+    @property
+    def parent(self) -> Optional["Circuit"]:
+        if self._parent is None:
+            return None
+        return self._parent()
 
-    电路可以互相组合形成新的电路，连接通过指定明确的input和output来设置，这里我们约定input
-    作为引用传递，进行output的结果被所在类持有内存。
+    @parent.setter
+    def parent(self, x: "Circuit"):
+        self._parent = weakref.ref(x)
 
-    电路以离散时间为单位进行状态变化，总以1为单位变化时间，程序的核心就是设置时序变化时电路状态
-    的变化
-    """
-
-    def step(self):
-        """
-        单步执行
-        """
-
-    def step_n(self, n_steps):
-        """
-        连续执行多步
-
-        :param n_steps: 步数
-        :return:
-        """
-        for _ in range(n_steps):
-            self.step()
-
-    def reset(self):
-        """
-        设置电路的初始化状态
-
-        :return:
-        """
+    def relative_to(self, circuit: "Circuit"):
+        parent = self.parent
+        path = [self.name]
+        while parent is not None:
+            if parent is circuit:
+                return path
+            path = [parent.name] + path
+        return None
 
 
-class Circuit(AbstractCircuit):
-    """
-    默认情况下我们只需要负责连接电路即可，计算过程相当于
-    每一个电路都执行step
-    """
-    def __init__(self):
-        self.sub_circuits = []
+class Circuit:
+    def __init__(self, name=None):
+        self._parent = None
+        self.name = name
+        self.wire_pool: dict[str, Wire] = dict()
+        self.sub_circuits: dict[str, Circuit] = dict()
 
-    def add_circuit(self, circuit: AbstractCircuit):
-        """
-        添加子电路
+    @property
+    def parent(self) -> Optional["Circuit"]:
+        if self._parent is None:
+            return None
+        return self._parent()
 
-        :param circuit:
-        :return: 输入的circuit，方便链式写法
-        """
-        self.sub_circuits.append(circuit)
-        return circuit
+    @parent.setter
+    def parent(self, x):
+        self._parent = weakref.ref(x)
 
-    def step(self):
-        # 按顺序计算子电路
-        for circuit in self.sub_circuits:
-            circuit.step()
+    def add_wire(self, name, wire):
+        wire.name = name
+        self.wire_pool[name] = wire
 
-    def reset(self):
-        """
-        默认将所有字电路进行重置
-        """
-        for circuit in self.sub_circuits:
-            circuit.reset()
+    def find_wire(self, *path):
+        if len(path) == 0:
+            raise ValueError("empty path")
+        if len(path) == 1:
+            return self.wire_pool[path[0]]
+        return self.sub_circuits[path[0]].find_wire(path[1:])
+
+    def execute(self, statement: hdl.Statement) -> "Circuit":
+        if isinstance(statement, hdl.BeginBlock):
+            for s in statement.statements:
+                self.execute(s)
+        if isinstance(statement, hdl.Assign):
+            target = statement.target
+            expr = statement.expr
+            if isinstance(target, hdl.Var):
+                wire = self.find_wire(target.name)
+                item = slice(None, None, None)
+            elif isinstance(target, hdl.Item):
+                item = target.item
+                target = target.expr
+                if not isinstance(target, hdl.Var):
+                    raise ValueError("we can only assign to wires")
+                wire = self.find_wire(target.name)
+            else:
+                raise TypeError("we can only assign to wires")
+            wire.set_value(self.eval(expr), item)
+        return self
+
+    def eval(self, expr: hdl.Expr) -> BitArray:
+        if isinstance(expr, int):
+            return BitArray(expr)
+
+        if isinstance(expr, hdl.Constant):
+            return BitArray(expr.value)
+
+        if isinstance(expr, hdl.Var):
+            return self.wire_pool[expr.name].value
+
+        if isinstance(expr, hdl.Eq):
+            v1 = self.eval(expr.e1)
+            v2 = self.eval(expr.e2)
+            return BitArray(1 if v1 == v2 else 0)
+
+        if isinstance(expr, hdl.Add):
+            v1 = self.eval(expr.e1)
+            v2 = self.eval(expr.e2)
+            return v1 + v2
+        raise NotImplementedError(f"not implemented: {expr}")

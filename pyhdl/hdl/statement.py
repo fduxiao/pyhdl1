@@ -1,5 +1,5 @@
 import typing
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from .expr import Expr, Var
 
 
@@ -24,35 +24,11 @@ class BeginBlock(Statement):
 
 @dataclass
 class Assign(Statement):
-    target: Var
-    e: Expr
+    target: Expr
+    expr: Expr
 
 
 @dataclass
 class Transfer(Statement):
-    target: Var
-    e: Expr
-
-
-@dataclass
-class Edge:
-    wire: Expr
-
-
-@dataclass
-class PosEdge(Edge):
-    pass
-
-
-@dataclass
-class NegEdge(Edge):
-    pass
-
-
-@dataclass
-class Always(Statement):
-    edges: list[Edge] = field(default_factory=list)
-    body: BeginBlock = field(default_factory=BeginBlock)
-
-    def add(self, statement):
-        self.body.add(statement)
+    target: Expr
+    expr: Expr

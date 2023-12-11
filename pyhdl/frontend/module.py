@@ -1,5 +1,6 @@
 
 import ast
+from dataclasses import dataclass, field
 import inspect
 
 import pyhdl.hdl as hdl
@@ -24,7 +25,10 @@ def get_var_name(offset=1, base=1) -> str:
     raise TypeError("unknown assignment")
 
 
+@dataclass
 class Always(hdl.Always):
+    extra_data: list = field(default_factory=list)
+
     def __enter__(self):
         self.extra_data.append(self.body)
         return self

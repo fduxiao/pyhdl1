@@ -4,7 +4,8 @@
 得到真实电路，然后进行仿真
 """
 from dataclasses import dataclass, field
-from .statement import Always, BeginBlock
+from .statement import BeginBlock
+from .expr import Var
 
 
 @dataclass
@@ -23,6 +24,30 @@ class Wire:
 class Instantiate:
     module: "Module"
     args: dict[str, str]
+
+
+@dataclass
+class Edge:
+    wire: Var
+
+
+@dataclass
+class PosEdge(Edge):
+    pass
+
+
+@dataclass
+class NegEdge(Edge):
+    pass
+
+
+@dataclass
+class Always:
+    edges: list[Edge] = field(default_factory=list)
+    body: BeginBlock = field(default_factory=BeginBlock)
+
+    def add(self, statement):
+        self.body.add(statement)
 
 
 @dataclass
