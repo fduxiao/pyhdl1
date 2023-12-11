@@ -6,8 +6,8 @@ from .wire import BaseWire
 
 
 class Wire(BaseWire):
-    def __init__(self, n_bit: int = 1, name=None):
-        super().__init__(n_bit)
+    def __init__(self, n_bit: int = 1, signed=False, name=None):
+        super().__init__(n_bit, signed)
         self._parent: weakref.ref["Circuit"] = None
         self.name = name
 

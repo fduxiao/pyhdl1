@@ -13,7 +13,8 @@ class BitArray:
             min_bits = math.ceil(math.log2(value))
         return min_bits
 
-    def __init__(self, value=0, n_bits=None):
+    def __init__(self, value=0, n_bits=None, signed=False):
+        self.signed = signed
         min_bits = self.get_min_bits(value)
         if n_bits is None:
             n_bits = min_bits

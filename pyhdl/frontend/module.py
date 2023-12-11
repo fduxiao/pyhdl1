@@ -47,36 +47,36 @@ class Module:
         self.ast = hdl.Module(type(self).__name__)
         self.block_stack = [self.ast.combs]
 
-    def param(self, n_bits=1, is_input=False, is_output=False, reg=False, name=None):
+    def param(self, n_bits=1, signed=False, is_input=False, is_output=False, reg=False, name=None):
         if name is None:
             name = get_var_name()
-        wire = Wire(n_bits, is_input, is_output, reg, name)
+        wire = Wire(n_bits, signed, is_input, is_output, reg, name)
         wire.module = self
         self.ast.params.append(wire)
         return wire.var()
 
-    def input(self, n_bits=1, name=None):
+    def input(self, n_bits=1, signed=False, name=None):
         if name is None:
             name = get_var_name()
-        return self.param(n_bits, True, False, False, name)
+        return self.param(n_bits, signed, True, False, False, name)
 
-    def output(self, n_bits=1, name=None):
+    def output(self, signed=False, n_bits=1, name=None):
         if name is None:
             name = get_var_name()
-        return self.param(n_bits, False, True, False, name)
+        return self.param(n_bits, signed, False, True, False, name)
 
-    def wire(self, n_bits=1, reg=False, name=None):
+    def wire(self, n_bits=1, signed=False, reg=False, name=None):
         if name is None:
             name = get_var_name()
-        wire = Wire(n_bits, reg=reg, name=name)
+        wire = Wire(n_bits, signed, reg=reg, name=name)
         wire.module = self
         self.ast.wires.append(wire)
         return wire.var()
 
-    def reg(self, n_bits, name=None):
+    def reg(self, n_bits, signed=False, name=None):
         if name is None:
             name = get_var_name()
-        return self.wire(n_bits, True, name)
+        return self.wire(n_bits, signed, True, name)
 
     def add(self, statement: hdl.Statement):
         self.block_stack[-1].add(statement)

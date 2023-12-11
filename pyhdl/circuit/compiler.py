@@ -9,11 +9,11 @@ def compile_to_circuit(module: Union[hdl.Module, Module]) -> Circuit:
     module: hdl.Module
     circuit = Circuit()
     for param in module.params:
-        wire = Wire(param.n_bits, param.name)
+        wire = Wire(param.n_bits, param.signed, param.name)
         circuit.add_wire(wire.name, wire)
 
     for local in module.wires:
-        wire = Wire(local.n_bits, local.name)
+        wire = Wire(local.n_bits, local.signed, local.name)
         circuit.add_wire(wire.name, wire)
 
     for name, instance in module.instances.items():

@@ -9,8 +9,8 @@ class BaseWire:
     模拟引线状态
     """
 
-    def __init__(self, n_bits: int = 1):
-        self._value: BitArray = BitArray(n_bits=n_bits)
+    def __init__(self, n_bits: int = 1, signed=False):
+        self._value: BitArray = BitArray(n_bits=n_bits, signed=signed)
         self.change_event: list[callable] = []
         """
         当导线的值发生变化的时候触发此函数，由于always块只有or操作，所以

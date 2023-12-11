@@ -14,6 +14,7 @@ class Wire:
     描述一个wire所需的内容
     """
     n_bits: int = 1
+    signed: bool = False
     is_input: bool = False
     is_output: bool = False
     reg: bool = False
