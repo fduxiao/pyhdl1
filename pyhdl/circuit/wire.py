@@ -1,7 +1,7 @@
 """
 模拟引线状态
 """
-from pyhdl.bitarray import BitArray
+from pyhdl.value import Value
 
 
 class BaseWire:
@@ -10,7 +10,7 @@ class BaseWire:
     """
 
     def __init__(self, n_bits: int = 1, signed=False):
-        self._value: BitArray = BitArray(n_bits=n_bits, signed=signed)
+        self._value: Value = Value(n_bits=n_bits, signed=signed)
         self.change_event: list[callable] = []
         """
         当导线的值发生变化的时候触发此函数，由于always块只有or操作，所以
@@ -26,7 +26,7 @@ class BaseWire:
         return self._value.n_bits
 
     @property
-    def value(self) -> BitArray:
+    def value(self) -> Value:
         """
         返回当前的导线状态
 
@@ -35,13 +35,13 @@ class BaseWire:
         return self._value
 
     @value.setter
-    def value(self, value: BitArray):
+    def value(self, value: Value):
         if value != self.value:
             self._value.set_value(value.value)
             self.on_change()
 
     def set_value(self, value, item=slice(None, None, None)):
-        if isinstance(value, BitArray):
+        if isinstance(value, Value):
             value = value.value
         if value != self.value[item]:
             self.value[item] = value

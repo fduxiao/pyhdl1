@@ -3,7 +3,7 @@
 """
 
 from dataclasses import dataclass
-from pyhdl.bitarray import BitArray
+from pyhdl.value import Value
 
 
 class Expr:
@@ -39,11 +39,11 @@ class Expr:
 
 @dataclass
 class Constant(Expr):
-    value: int | BitArray
+    value: int | Value
 
     def __post_init__(self):
-        if not isinstance(self.value, BitArray):
-            self.value = BitArray(self.value)
+        if not isinstance(self.value, Value):
+            self.value = Value(self.value)
 
     @property
     def n_bits(self):

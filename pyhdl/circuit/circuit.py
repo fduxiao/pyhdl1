@@ -1,7 +1,7 @@
 from typing import Optional
 import weakref
 
-from pyhdl import hdl, BitArray
+from pyhdl import hdl, Value
 from .wire import BaseWire
 
 
@@ -80,9 +80,9 @@ class Circuit:
             wire.set_value(self.eval(expr), item)
         return self
 
-    def eval(self, expr: hdl.Expr) -> BitArray:
+    def eval(self, expr: hdl.Expr) -> Value:
         if isinstance(expr, int):
-            return BitArray(expr)
+            return Value(expr)
 
         if isinstance(expr, hdl.Constant):
             return expr.value
@@ -93,7 +93,7 @@ class Circuit:
         if isinstance(expr, hdl.Eq):
             v1 = self.eval(expr.e1)
             v2 = self.eval(expr.e2)
-            return BitArray(1 if v1 == v2 else 0)
+            return Value(1 if v1 == v2 else 0)
 
         if isinstance(expr, hdl.Add):
             v1 = self.eval(expr.e1)
