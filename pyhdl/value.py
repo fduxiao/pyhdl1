@@ -34,7 +34,7 @@ class Shape:
             self.range = range(self.max)
             self.max -= 1
         else:
-            max_value = 0b1 << (self.n_bits - 1)
+            max_value = 0b01 << (self.n_bits - 1)
             self.min = -max_value
             self.max = max_value - 1
             self.range = range(-max_value, max_value)
@@ -238,15 +238,36 @@ class Value:
         return Value(result)  # always unsigned
 
     def __setitem__(self, key, value):
-        if isinstance(value, Value):
-            shape = value.shape
-            value = value.value
-        else:
-            shape = Shape.from_n(value)
+        # by setting value, we always make sure value is an unsigned value
+        # even if it is negative, we will view it as a positive number.
+        if isinstance(value, int):
+            value = Value(value)
+        shape = value.shape
+        value = value._value
 
         start, stop, step = self.parse_slice(key)
-        if start == stop == 0:
-            return
+        target_bit_width = (stop - start) // step
+        if shape.n_bits > target_bit_width:
+            value %= 1 << target_bit_width  # truncate overflow bits
+
+        # shift the value
+        value <<= start
+        # prepare the mask
+        # first tag the bits to be changed with 1
+        mask = (0b01 << target_bit_width) - 1
+        mask <<= start
+        # then take the negation
+        mask ^= self.modulo - 1
+
+        self._value = (self.value & mask) | value
+
+    def as_signed(self):
+        """
+        sometimes we may want to change an unsigned number to a signed. Then we can use this one
+        """
+        result = type(self)(0, shape=Signed(self.n_bits))
+        result._value = self._value
+        return result
 
     def __eq__(self, other):
         if isinstance(other, Value):

@@ -52,3 +52,16 @@ class TestValue(TestCase):
         self.assertEqual(reg[2:1].bin(), "01")
         self.assertEqual(reg.rev().bin(), "1101")
         self.assertEqual(reg[2:], 0b011)
+
+    def test_set_value(self):
+        reg = Value(shape=Signed(8))
+        reg[:] = 0b11111011
+        self.assertEqual(reg, -5)
+        self.assertEqual(reg._value, 0b11111011)
+        reg[7:4] = -5  # 0b1011
+        self.assertEqual(reg._value, 0b10111011)
+        reg[3:0] = 0b11101
+        self.assertEqual(reg._value, 0b10111101)
+        reg[7:4] = -22  # 0b101010
+        self.assertEqual(reg[7:4].as_signed(), -6)
+        self.assertEqual(reg[3:0].as_signed(), -3)
