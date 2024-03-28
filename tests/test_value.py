@@ -65,3 +65,36 @@ class TestValue(TestCase):
         reg[7:4] = -22  # 0b101010
         self.assertEqual(reg[7:4].as_signed(), -6)
         self.assertEqual(reg[3:0].as_signed(), -3)
+
+    def test_arithmetic(self):
+        shape = Signed(4)
+        a1 = shape.value(1)
+        a2 = -a1
+        self.assertEqual(a2, -1)
+        self.assertEqual((a1 + a2).as_shape(shape), 0)
+        self.assertEqual((a1 - a2).as_shape(shape), 2)
+
+        a1 = shape.value(0b1011)
+        self.assertEqual(a1, -5)
+        a2 = shape.value(0b1111)
+        self.assertEqual(a2, -1)
+        self.assertEqual(a1 + a2, 0b1011 + 0b1111)
+        self.assertEqual((a1 + a2).as_shape(shape), -6)
+        self.assertEqual((a1 + a2).as_shape(shape)._value, 10)
+
+        self.assertEqual(~a1, 0b0100)
+        self.assertEqual(~a2, 0b0000)
+        self.assertEqual(a1 & a2, 0b1011)
+        self.assertEqual(a1 | a2, 0b1111)
+        self.assertEqual(a1 ^ a2, 0b0100)
+
+        self.assertEqual((a1 * a2).as_shape(shape), 5)
+        self.assertEqual((a1 // a2).as_shape(shape), 0)
+
+        a1 = shape.value(0b1011)
+        a2 = Value(7)
+        self.assertEqual(a1 % a2, 2)
+
+        a2 = Value(15)
+        a3 = Value(4)
+        self.assertEqual(a2 % a3, 3)

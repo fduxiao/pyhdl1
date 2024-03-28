@@ -87,6 +87,12 @@ class Shape:
     def from_n(cls, *args):
         return cls.from_range(args)
 
+    def value(self, n):
+        """
+        You can also easily make a value from the shape
+        """
+        return Value(n, self)
+
 
 class Signed(Shape):
     def __init__(self, n_bit: int = 1):
@@ -121,10 +127,7 @@ class Value:
         if shape is Signed:
             shape = Shape.from_n(-1, value)
         self.shape: Shape = shape
-        if value < shape.min or value > shape.max:
-            raise ValueError(f'{value} is not contained in range {shape}')
-        if value < 0:
-            value = value % shape.modulo
+        value %= shape.modulo
         self._value = value
 
     # then we make some syntax sugar
@@ -261,20 +264,56 @@ class Value:
 
         self._value = (self.value & mask) | value
 
+    def as_shape(self, shape: Shape):
+        """
+        return with the specified shape
+        """
+        return type(self)(self._value, shape=shape)
+
     def as_signed(self):
         """
         sometimes we may want to change an unsigned number to a signed. Then we can use this one
         """
-        result = type(self)(0, shape=Signed(self.n_bits))
-        result._value = self._value
-        return result
+        return self.as_shape(Signed(self.n_bits))
 
     def __eq__(self, other):
         if isinstance(other, Value):
             other = other.value
         return other == self.value
 
-    def __add__(self, other):
+    def binary_op(self, other, func):
+        if isinstance(other, Value):
+            other = other._value
+        return Value(func(self._value, other))
+
+    def __add__(self, other) -> "Value":
+        return self.binary_op(other, lambda x, y: x + y)
+
+    def __neg__(self):
+        return Value(self.modulo - self._value, shape=self.shape)
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __mul__(self, other) -> "Value":
+        return self.binary_op(other, lambda x, y: x * y)
+
+    def __floordiv__(self, other) -> "Value":
+        return self.binary_op(other, lambda x, y: x // y)
+
+    def __mod__(self, other) -> "Value":
         if isinstance(other, Value):
             other = other.value
-        return Value(self.value + other)
+        return Value(self.value % other)
+
+    def __invert__(self):
+        return Value(~self._value, shape=self.shape)
+
+    def __and__(self, other):
+        return self.binary_op(other, lambda x, y: x & y)
+
+    def __or__(self, other):
+        return self.binary_op(other, lambda x, y: x | y)
+
+    def __xor__(self, other):
+        return self.binary_op(other, lambda x, y: x ^ y)
